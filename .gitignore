@@ -1,0 +1,17 @@
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+
+# Mypy static type checker cache
+.mypy_cache/
+
+# Environment variables / secrets
+.env
+
+# Local drivers (chromedriver)
+drivers/
+
+# Logs or saved scrape results (optional)
+*.log
+profile.json
