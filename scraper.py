@@ -11,9 +11,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
+from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
 from webdriver_manager.chrome import ChromeDriverManager
 from config import SELENIUM_TIMEOUT, SELENIUM_IMPLICIT_WAIT
+
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -132,46 +134,27 @@ class LinkedInScraper:
             return None
     
     def _extract_name(self):
-        """Extract profile name"""
+        """Extract profile name using robust XPath only"""
         try:
-            # Try multiple selectors for name
-            selectors = [
-                ".v-align-middle.break-words",
-                "h1.text-heading-xlarge",
-                ".text-heading-xlarge",
-                "h1[aria-label*='name']",
-                ".pv-text-details__left-panel h1"
-            ]
-            
-            for selector in selectors:
-                try:
-                    element = self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                    return element.text.strip()
-                except TimeoutException:
-                    continue
-            
-            return "Name not found"
-            
+            # Try robust XPath for <h1>
+            element = self.wait.until(EC.visibility_of_element_located((By.XPATH,"//h1")))
+            name = element.text.strip()
+            return name if name else "Name not found"
+
         except Exception as e:
             logger.warning(f"Error extracting name: {str(e)}")
             return "Name not found"
     
     def _extract_headline(self):
-        """Extract profile headline"""
+        """Extract headline using the confirmed structure"""
         try:
-            selectors = [
-                ".text-body-medium.break-words",
-                ".pv-text-details__left-panel .text-body-medium",
-                "[data-section='headline'] .text-body-medium"
-            ]
-            
-            for selector in selectors:
-                try:
-                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    return element.text.strip()
-                except NoSuchElementException:
-                    continue
-            
+            # XPath matches: top container → text-body-medium div
+            element = self.driver.find_element(By.XPATH,"//h1/ancestor::div[1]/following-sibling::div[contains(@class,'text-body-medium')]")
+            headline = element.text.strip()
+            return headline if headline else "Headline not found"
+
+        except Exception as e:
+            logger.warning(f"Error extracting headline: {str(e)}")
             return "Headline not found"
             
         except Exception as e:
@@ -179,105 +162,161 @@ class LinkedInScraper:
             return "Headline not found"
     
     def _extract_about(self):
-        """Extract about section"""
+        """Extract About section"""
         try:
-            # Click "Show more" if available
+            # Find the About header
+            about_header = self.driver.find_element(By.XPATH, "//h2[.//span[text()='About']]")
+
+            # Try to click Show more using XPath (more reliable)
             try:
-                show_more = self.driver.find_element(By.CSS_SELECTOR, "[aria-label='Show more']")
-                show_more.click()
+                show_more = self.driver.find_element(By.XPATH, "//div[contains(@class, 'display-flex ph5 pv3')]//span[contains(@class, 'inline-show-more-text__link-container-collapsed')]//button")
+                self.driver.execute_script("arguments[0].click();", show_more)
                 time.sleep(1)
             except NoSuchElementException:
                 pass
-            
+
+            # Try more general XPath selectors
             selectors = [
-                ".pv-shared-text-with-see-more span",
-                ".pv-about__summary-text",
-                "[data-section='summary'] .pv-shared-text-with-see-more"
+                "//div[contains(@class, 'display-flex ph5 pv3')]//span[@aria-hidden='true']",
+                "//section[contains(@class, 'pv-about-section')]//span",
+                "//div[contains(@class, 'pv-shared-text')]//span",
+                "//div[contains(@id, 'about')]//span"
             ]
-            
+
             for selector in selectors:
                 try:
-                    element = self.driver.find_element(By.CSS_SELECTOR, selector)
-                    return element.text.strip()
+                    element = self.driver.find_element(By.XPATH, selector)
+                    text = element.text.strip()
+                    if text:
+                        return text
                 except NoSuchElementException:
                     continue
-            
+
             return "About section not found"
-            
+
         except Exception as e:
-            logger.warning(f"Error extracting about section: {str(e)}")
-            return "About section not found"
+            return f"Error: {e}"
+
     
     def _extract_experience(self):
         """Extract work experience"""
         try:
             experience_list = []
-            
-            # Navigate to experience section
-            try:
-                experience_section = self.driver.find_element(By.CSS_SELECTOR, "[data-section='experience']")
-                experience_section.click()
-                time.sleep(2)
-            except NoSuchElementException:
-                # Try alternative navigation
+
+            #Find the Experience header
+            experience_header = self.driver.find_element(By.XPATH, "//h2[.//span[text()='Experience']]")
+
+            #Find its container div
+            experience_container = experience_header.find_element(By.XPATH, "./ancestor::div[4]")
+
+            #Find the next sibling that holds the list
+            experience_section = experience_container.find_element(By.XPATH, "./following-sibling::div")
+
+            #Find all <li> experience items
+            experience_items = experience_section.find_elements(By.XPATH, ".//li[contains(@class, 'artdeco-list__item')]")
+
+            for item in experience_items[:5]:
                 try:
-                    experience_link = self.driver.find_element(By.CSS_SELECTOR, "a[href*='experience']")
-                    experience_link.click()
-                    time.sleep(2)
-                except NoSuchElementException:
-                    pass
-            
-            # Extract experience items
-            experience_items = self.driver.find_elements(By.CSS_SELECTOR, ".pvs-list__item--line-separated")
-            
-            for item in experience_items[:5]:  # Limit to first 5 experiences
-                try:
-                    title_element = item.find_element(By.CSS_SELECTOR, ".t-bold span")
-                    company_element = item.find_element(By.CSS_SELECTOR, ".t-normal span")
-                    
+                    # Title with fallback
+                    try:
+                        title_element = item.find_element(
+                            By.XPATH, ".//div[contains(@class, 't-bold')]//span[@aria-hidden='true']"
+                        )
+                    except NoSuchElementException:
+                        title_element = item.find_element(
+                            By.XPATH, ".//span[@aria-hidden='true']"
+                        )
+
+                    # Company with fallback
+                    try:
+                        company_element = item.find_element(
+                            By.XPATH, ".//span[contains(@class,'t-normal')]//span[@aria-hidden='true']"
+                        )
+                    except NoSuchElementException:
+                        company_element = item.find_element(
+                            By.XPATH, ".//span[@aria-hidden='true']"
+                        )
+
                     title = title_element.text.strip()
                     company = company_element.text.strip()
-                    
+
                     if title and company:
                         experience_list.append({
                             'title': title,
                             'company': company
                         })
+
                 except NoSuchElementException:
                     continue
-            
-            return experience_list
-            
+
+            return experience_list if experience_list else ["Experience not found"]
+
         except Exception as e:
             logger.warning(f"Error extracting experience: {str(e)}")
             return ["Experience not found"]
+
     
     def _extract_skills(self):
-        """Extract skills"""
+        """Extract skills from LinkedIn profile"""
         try:
             skills_list = []
-            
-            # Navigate to skills section
+
+            #Find the Skills header
+            skills_header = self.driver.find_element(By.XPATH, "//h2[.//span[text()='Skills']]")
+
+            #Get its container div
+            skills_container = skills_header.find_element(By.XPATH, "./ancestor::div[4]")
+
+            #Get the following sibling that holds the skills list
+            skills_section = skills_container.find_element(By.XPATH, "./following-sibling::div")
+
+            #Click "Show all skills" if visible
             try:
-                skills_section = self.driver.find_element(By.CSS_SELECTOR, "[data-section='skills']")
-                skills_section.click()
+                #Find the link with robust XPath
+                show_all_link = skills_section.find_element(By.XPATH,".//div[contains(@class,'pv-action')]//a[.//span[contains(normalize-space(.), 'Show all') and contains(normalize-space(.), 'skills')]]")
+
+                href = show_all_link.get_attribute("href")
+                print("Show all link href:", href)
+
+                #Scroll & click via JS
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", show_all_link)
+                time.sleep(0.5)
+
+                try:
+                    self.driver.execute_script("arguments[0].click();", show_all_link)
+                except ElementClickInterceptedException:
+                    show_all_link.send_keys(Keys.RETURN)
+
                 time.sleep(2)
+
+                #Fallback: force navigate if click did not fire a redirect
+                if href and href not in self.driver.current_url:
+                    self.driver.get(href)
+                    time.sleep(2)
+
+
             except NoSuchElementException:
-                pass
-            
-            # Extract skills
-            skill_elements = self.driver.find_elements(By.CSS_SELECTOR, ".pvs-list__item--line-separated .t-bold span")
-            
-            for element in skill_elements[:10]:  # Limit to first 10 skills
-                skill = element.text.strip()
-                if skill and len(skill) > 1:
-                    skills_list.append(skill)
-            
-            return skills_list
-            
+                logger.warning("No Show All link found.")
+
+            #Now find all <li> skill items in the expanded list
+            skill_items = self.driver.find_elements(By.XPATH, "//li[contains(@class,'artdeco-list__item')]")
+
+            for item in skill_items[:10]:  # Limit to first 10
+                try:
+                    # Use aria-hidden="true" to get only visible text
+                    skill_element = item.find_element(By.XPATH, ".//div[contains(@class, 't-bold')]//span[@aria-hidden='true']")
+                    skill = skill_element.text.strip()
+                    if skill and len(skill) > 1:
+                        skills_list.append(skill)
+                except NoSuchElementException:
+                    continue  # Skip if no clean span found
+
+            return skills_list if skills_list else ["Skills not found"]
+
         except Exception as e:
             logger.warning(f"Error extracting skills: {str(e)}")
             return ["Skills not found"]
+
     
     def close(self):
         """Close the WebDriver"""

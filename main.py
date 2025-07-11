@@ -57,8 +57,11 @@ def run_console_mode():
             return
         
         print("\n\n\t\t✅ Profile data scraped successfully!\n")
-        print(f"Name: {profile_data.get('name', 'Unknown')}")
-        print(f"Headline: {profile_data.get('headline', 'Unknown')}")
+        print(f"Name: {profile_data.get('name', 'Unknown')}\n")
+        print(f"Headline: {profile_data.get('headline', 'Unknown')}\n")
+        print(f"About: {profile_data.get('about', 'Unknown')}\n")
+        print(f"Experience: {profile_data.get('experience', 'Unknown')}\n")
+        print(f"Skills: {profile_data.get('skills', 'Unknown')}\n")
         
         # Generate summary
         print("\n\n\t\t🤖 Generating professional summary...")
