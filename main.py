@@ -51,7 +51,7 @@ def run_console_mode():
     
     # Scrape the profile
     try:
-        profile_data = scrape_linkedin_profile(profile_url, headless=False)
+        profile_data = scrape_linkedin_profile(profile_url, headless=True)
         
         if not profile_data:
             print("\n\n\t\t❌ Failed to scrape profile data\n\n")

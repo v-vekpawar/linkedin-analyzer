@@ -47,9 +47,13 @@ class LinkedInScraper:
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--window-size=1920,1080")
 
+            # ✅ NEW: Use persistent Chrome user data folder
+            chrome_options.add_argument("--user-data-dir=/app/chrome-profile")
+
             # ✅ Use your downloaded driver directly
             service = Service("drivers/chromedriver-win64/chromedriver.exe")
             self.driver = webdriver.Chrome(service=service, options=chrome_options)
+
 
             self.driver.implicitly_wait(SELENIUM_IMPLICIT_WAIT)
             self.wait = WebDriverWait(self.driver, SELENIUM_TIMEOUT)
@@ -64,47 +68,64 @@ class LinkedInScraper:
     
     def login_to_linkedin(self, profile_url=None):
         """
-        Open LinkedIn login page and wait for manual login
-        If profile_url is provided, navigate to it after login.
-        Returns:
-            bool: True if login page loaded successfully
+        If session cookie is valid → skip login.
+        Else → open login page & wait for manual login.
         """
         try:
-            logger.info("\n\n\t\tOpening LinkedIn login page...\n\n")
+            logger.info("\n\n\t\tChecking if already logged in...\n\n")
+
+            # Open LinkedIn home page directly
+            self.driver.get("https://www.linkedin.com/feed/")
+
+            time.sleep(2)
+
+            current_url = self.driver.current_url
+            logger.info(f"\n\t\tCurrent URL: {current_url}")
+
+            # ✅ If we're on feed → we are logged in
+            if "feed" in current_url:
+                logger.info("\n\t\tAlready logged in, skipping manual login.")
+
+                # Go to profile page if provided
+                if profile_url:
+                    logger.info(f"\n\t\tNavigating to profile: {profile_url}")
+                    self.driver.get(profile_url)
+                    time.sleep(2)
+
+                return True
+
+            # ✅ If redirected to login → manual login needed
+            logger.info("\n\t\tNot logged in → opening login page for manual login.")
             self.driver.get("https://www.linkedin.com/login")
             self.wait.until(EC.presence_of_element_located((By.ID, "username")))
-            logger.info("\n\t\tLinkedIn login page loaded. Please log in manually.")
-            logger.info("\t\tWaiting for manual login completion (auto-detect)...")
-            max_wait = 300  # seconds
-            poll_interval = 2  # seconds
+
+            logger.info("\n\t\tWaiting for you to log in manually...")
+
+            max_wait = 300
+            poll_interval = 2
             waited = 0
+
             while waited < max_wait:
                 current_url = self.driver.current_url
-                if "linkedin.com" in current_url and "login" not in current_url:
-                    logger.info("\n\n\t\tLogin detected! Proceeding...\n\n")
+                if "feed" in current_url or ("linkedin.com" in current_url and "login" not in current_url):
+                    logger.info("\n\t\tLogin detected, proceeding!")
                     break
-                try:
-                    if self.driver.find_elements(By.ID, "global-nav"):
-                        logger.info("\n\n\t\tLogin detected by nav bar! Proceeding...\n\n")
-                        break
-                except Exception:
-                    pass
                 time.sleep(poll_interval)
                 waited += poll_interval
             else:
-                logger.error("\n\n\t\tTimeout waiting for LinkedIn login to complete.\n\n")
+                logger.error("\n\t\tTimeout waiting for login.")
                 return False
-            # After login, navigate to the profile page if provided
+
+            # After manual login → go to profile page
             if profile_url:
-                logger.info(f"\n\n\t\tNavigating to profile page after login: {profile_url}\n\n")
+                logger.info(f"\n\t\tNavigating to profile page: {profile_url}")
                 self.driver.get(profile_url)
-                time.sleep(3)  # Wait for profile page to load
+                time.sleep(2)
+
             return True
-        except TimeoutException:
-            logger.error("\n\n\t\tTimeout waiting for login page to load\n\n")
-            return False
+
         except Exception as e:
-            logger.error(f"\n\n\t\tError during login process: {str(e)}\n\n")
+            logger.error(f"\n\t\tError during login check: {str(e)}")
             return False
     
     def scrape_profile(self, profile_url):
