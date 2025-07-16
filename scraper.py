@@ -75,7 +75,7 @@ class LinkedInScraper:
             logger.info("\n\n\t\tChecking if already logged in...\n\n")
 
             # Open LinkedIn home page directly
-            self.driver.get("https://www.linkedin.com/feed/")
+            self.driver.get("https://www.linkedin.com/login/")
 
             time.sleep(2)
 
@@ -136,6 +136,10 @@ class LinkedInScraper:
         Returns:
             dict: Scraped profile data
         """
+        if not self.login_to_linkedin(profile_url):  # ✅ Fixed
+            logger.error("Login failed, cannot scrape profile")
+            return None
+
         try:
             # No need to navigate again, already on profile page after login
             logger.info(f"Scraping profile: {profile_url}")
@@ -365,8 +369,8 @@ def scrape_linkedin_profile(profile_url, headless=False):
             return None
         
         # Login to LinkedIn
-        if not scraper.login_to_linkedin(profile_url):
-            return None
+        # if not scraper.login_to_linkedin(profile_url):
+        #     return None
         
         # Scrape profile
         profile_data = scraper.scrape_profile(profile_url)
