@@ -58,16 +58,20 @@ class ProfileAnalyzer:
         about = profile_data.get("about", "No about section available")
 
         exp_list = profile_data.get("experience", [])
-        if isinstance(exp_list, list) and exp_list:
+        # Only use items that are dicts
+        exp_items = [exp for exp in exp_list if isinstance(exp, dict)]
+        if exp_items:
             exp_text = "\n".join([
                 f"- {exp.get('title', 'Unknown')} at {exp.get('company', 'Unknown Company')}"
-                for exp in exp_list[:5]
+                for exp in exp_items[:5]
             ])
         else:
             exp_text = "No work experience listed"
 
         skills_list = profile_data.get("skills", [])
-        skills_text = ", ".join(skills_list[:10]) if skills_list else "No skills listed"
+        # Only use items that are strings and not 'Skills not found'
+        skills_items = [s for s in skills_list if isinstance(s, str) and s != "Skills not found"]
+        skills_text = ", ".join(skills_items[:10]) if skills_items else "No skills listed"
 
         if mode == "bio":
             prompt = f"""
