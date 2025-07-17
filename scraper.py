@@ -150,6 +150,7 @@ class LinkedInScraper:
                 'about': self._extract_about(),
                 'experience': self._extract_experience(),
                 'skills': self._extract_skills(),
+                'education' : self._extract_education(),
                 'url': profile_url
             }
             logger.info("\n\n\t\tProfile scraping completed successfully\n\n")
@@ -336,12 +337,84 @@ class LinkedInScraper:
                 except NoSuchElementException:
                     continue  # Skip if no clean span found
 
+            try:
+                # Wait for back arrow
+                back_arrow = self.wait.until(EC.element_to_be_clickable(
+                    (By.XPATH, "//button[contains(@aria-label = 'Back to the main profile page']")))
+                self.driver.execute_script("arguments[0].click();", back_arrow)
+
+                # Wait for main profile page to reload (e.g. wait for Name h1 again)
+                self.wait.until(EC.presence_of_element_located((By.XPATH, "//h1")))
+
+            except Exception as e:
+                logger.warning(f"Failed to click back arrow: {str(e)}")
+
             return skills_list if skills_list else ["Skills not found"]
 
         except Exception as e:
             logger.warning(f"Error extracting skills: {str(e)}")
             return ["Skills not found"]
 
+    def _extract_education(self):
+        """Extract skills from LinkedIn profile"""
+        try:
+            education_list = []
+
+            #Find the Skills header
+            education_header = self.driver.find_element(By.XPATH, "//h2[.//span[text()='Education']]")
+
+            #Get its container div
+            education_container = education_header.find_element(By.XPATH, "./ancestor::div[4]")
+
+            #Get the following sibling that holds the skills list
+            education_section = education_container.find_element(By.XPATH, "./following-sibling::div")
+
+            #Click "Show all education" if visible
+            try:
+                #Find the link with robust XPath
+                show_all_link = education_section.find_element(By.XPATH,".//div[contains(@class,'pv-action')]//a[.//span[contains(normalize-space(.), 'Show all') and contains(normalize-space(.), 'educations')]]")
+
+                href = show_all_link.get_attribute("href")
+                print("Show all link href:", href)
+
+                #Scroll & click via JS
+                self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", show_all_link)
+                time.sleep(0.5)
+
+                try:
+                    self.driver.execute_script("arguments[0].click();", show_all_link)
+                except ElementClickInterceptedException:
+                    show_all_link.send_keys(Keys.RETURN)
+
+                time.sleep(2)
+
+                #Fallback: force navigate if click did not fire a redirect
+                if href and href not in self.driver.current_url:
+                    self.driver.get(href)
+                    time.sleep(2)
+
+
+            except NoSuchElementException:
+                logger.warning("No Show All link found.")
+
+            #Now find all <li> skill items in the expanded list
+            education_items = self.driver.find_elements(By.XPATH, "//li[contains(@class,'artdeco-list__item')]")
+
+            for item in education_items[:10]:  # Limit to first 10
+                try:
+                    # Use aria-hidden="true" to get only visible text
+                    education_element = item.find_element(By.XPATH, ".//div[contains(@class, 't-bold')]//span[@aria-hidden='true']")
+                    skill = skill_element.text.strip()
+                    if skill and len(skill) > 1:
+                        skills_list.append(skill)
+                except NoSuchElementException:
+                    continue  # Skip if no clean span found
+
+            return education_list if education_list else ["Education not found"]
+
+        except Exception as e:
+            logger.warning(f"Error extracting Education: {str(e)}")
+            return ["Education not found"]
     
     def close(self):
         """Close the WebDriver"""

@@ -227,6 +227,17 @@
                                 </a>
                             </div>
                         </div>
+
+                        <div class="profile-section">
+                            <h3><i class="fas fa-tools"></i> Education</h3>
+                            {% if profile_data.education and profile_data.education|length > 0 %}
+                                {% for education in profile_data.education %}
+                                    <span class="skill-tag">{{ education }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No education information available</p>
+                            {% endif %}
+                        </div>
                         
                         <!-- <div class="profile-section">
                             <h3><i class="fas fa-info-circle"></i> About</h3>
@@ -255,16 +266,6 @@
                             {% endif %}
                         </div>
                         
-                        <!-- <div class="profile-section">
-                            <h3><i class="fas fa-tools"></i> Skills</h3>
-                            {% if profile_data.skills and profile_data.skills|length > 0 %}
-                                {% for skill in profile_data.skills %}
-                                    <span class="skill-tag">{{ skill }}</span>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted">No skills information available</p>
-                            {% endif %}
-                        </div> -->
                     </div>
                 </div>
                 
@@ -312,13 +313,22 @@ Profile: {{ profile_data.name }}
 Type: ${summaryType}
 Generated: ${new Date().toLocaleString()}
 
-SUMMARY:
+Result:
 ${summaryText}
 
-PROFILE INFORMATION:
+------------------------------PROFILE INFORMATION:------------------------------
+
 Name: {{ profile_data.name }}
+
 Headline: {{ profile_data.headline }}
-About: {{ profile_data.about }}
+
+About: 
+{{ profile_data.about }}
+
+Education:
+{% for skill in profile_data.education %}
+- {{ education }}
+{% endfor %}
 
 Experience:
 {% for exp in profile_data.experience %}
