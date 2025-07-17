@@ -1,6 +1,4 @@
-# LinkedIn Profile Analyzer
-
-A beginner-friendly Python web app that scrapes LinkedIn profiles and generates professional AI-powered summaries using Google Gemini. Enter a LinkedIn profile link, and the app will extract the profile's information and create a professional summary for you.
+LinkedIn Profile Analyzer — a beginner-friendly Python web app that scrapes LinkedIn profiles and generates professional AI-powered summaries and analysis using Google Gemini.
 
 ---
 
@@ -42,7 +40,7 @@ A beginner-friendly Python web app that scrapes LinkedIn profiles and generates 
      ```
 4. **Install Chrome and Chromedriver if not already installed**
    - Go to (https://googlechromelabs.github.io/chrome-for-testing/)
-   - Install stable chrome driver .zip file as per ypur pc
+   - Install the stable ChromeDriver .zip file according to your PC
    - Unzip the downloaded folder in linkedin-analyzer/drivers
 
 5. **(Linux only) Install Chrome and Chromedriver if not already installed**
@@ -101,6 +99,10 @@ A beginner-friendly Python web app that scrapes LinkedIn profiles and generates 
 
 ---
 
+## ⚠️ Legal Disclaimer
+This tool is for educational and personal use only. Scraping LinkedIn may violate their Terms of Service. The author takes no responsibility for misuse.
+
+---
 ## 📁 Project Structure
 ```
 linkedin-analyzer/
@@ -124,5 +126,9 @@ linkedin-analyzer/
 - [Google Gemini API](https://aistudio.google.com/app/apikey)
 
 ---
+
+---
+## 👤 Author
+Created by [Vivek] — feel free to check my [LinkedIn](https://www.linkedin.com/in/vivekpawar-ved/).
 
 **Enjoy analyzing LinkedIn profiles with AI!**
