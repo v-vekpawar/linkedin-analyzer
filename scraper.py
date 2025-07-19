@@ -107,7 +107,7 @@ class LinkedInScraper:
 
             while waited < max_wait:
                 current_url = self.driver.current_url
-                if "feed" in current_url or ("linkedin.com" in current_url and "login" not in current_url):
+                if "feed" in current_url:
                     logger.info("\n\t\tLogin detected, proceeding!")
                     break
                 time.sleep(poll_interval)
@@ -340,7 +340,7 @@ class LinkedInScraper:
             try:
                 # Wait for back arrow
                 back_arrow = self.wait.until(EC.element_to_be_clickable(
-                    (By.XPATH, "//button[contains(@aria-label = 'Back to the main profile page']")))
+                    (By.XPATH, "//button[@aria-label = 'Back to the main profile page']")))
                 self.driver.execute_script("arguments[0].click();", back_arrow)
 
                 # Wait for main profile page to reload (e.g. wait for Name h1 again)
@@ -356,7 +356,7 @@ class LinkedInScraper:
             return ["Skills not found"]
 
     def _extract_education(self):
-        """Extract skills from LinkedIn profile"""
+        """Extract educations from LinkedIn profile"""
         try:
             education_list = []
 
@@ -398,15 +398,15 @@ class LinkedInScraper:
                 logger.warning("No Show All link found.")
 
             #Now find all <li> skill items in the expanded list
-            education_items = self.driver.find_elements(By.XPATH, "//li[contains(@class,'artdeco-list__item')]")
+            education_items = self.driver.find_elements(By.XPATH, "//section[@class='ardeco-card pb3']//li[contains(@class,'artdeco-list__item')]")
 
             for item in education_items[:10]:  # Limit to first 10
                 try:
                     # Use aria-hidden="true" to get only visible text
                     education_element = item.find_element(By.XPATH, ".//div[contains(@class, 't-bold')]//span[@aria-hidden='true']")
-                    skill = skill_element.text.strip()
-                    if skill and len(skill) > 1:
-                        skills_list.append(skill)
+                    education = education_element.text.strip()
+                    if education and len(education) > 1:
+                        education_list.append(education)
                 except NoSuchElementException:
                     continue  # Skip if no clean span found
 
