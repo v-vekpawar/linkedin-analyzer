@@ -1,117 +1,145 @@
-LinkedIn Profile Analyzer — a beginner-friendly Python web app that scrapes LinkedIn profiles and generates professional AI-powered summaries and analysis using Google Gemini.
+# LinkedIn Profile Analyzer
+
+A beginner-friendly Python web app that **scrapes LinkedIn profiles** using **Playwright** and generates professional AI-powered summaries and analysis with **Google Gemini**.
 
 ---
 
 ## ✨ Features
-- **LinkedIn Profile Scraping**: Extracts name, headline, about, experience, and skills (manual login required for privacy and security).
-- **AI Summaries**: Uses Google Gemini API to generate clear, professional summaries.
-- **Modern Web Interface**: Simple, responsive web UI for easy use.
-- **Copy & Download**: Easily copy or download the generated summary.
-- **Beginner-Friendly**: No advanced setup or coding required.
+
+- **LinkedIn Profile Scraping** — Extracts name, headline, about, experience, skills, and education.
+- **AI Summaries** — Uses the Google Gemini API to generate clear, professional summaries.
+- **Modern Web Interface** — Simple, responsive web UI.
+- **Copy & Download** — Easily copy or download the generated summary.
+- **Persistent Login** — Log in once; your session is saved.
+- **Beginner-Friendly** — No advanced setup or coding skills required.
 
 ---
 
 ## 📝 Requirements
+
 - **Python 3.8 or higher**
-- **Google Gemini API key** ([get it free](https://aistudio.google.com/app/apikey))
-- **Google Chrome browser** (for scraping)
-- **LinkedIn account** (for manual login during scraping)
+- **Google Gemini API key** ([Get it free](https://aistudio.google.com/app/apikey))
+- **Google Chrome or Chromium** (required by Playwright)
+- **LinkedIn account** (manual login required on first run)
 
 ---
 
 ## 🚀 Setup Instructions
 
 1. **Clone this repository**
-   ```sh
+   ```bash
    git clone <your-repository-url>
    cd linkedin-analyzer
    ```
 
 2. **Install Python dependencies**
-   ```sh
+   ```bash
    pip install -r requirements.txt
    ```
 
-3. **Set up your Gemini API key**
-   - Get your key from [Google AI Studio](https://aistudio.google.com/app/apikey)
-   - Create a file named `.env` in the project folder:
-     ```
+3. **Install Playwright browsers**
+   ```bash
+   playwright install
+   ```
+
+4. **Set up your Gemini API key**
+
+   - Get your API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - Create a `.env` file in the project folder:
+     ```env
      GEMINI_API_KEY=your_gemini_api_key_here
      ```
-4. **Install Chrome and Chromedriver if not already installed**
-   - Go to (https://googlechromelabs.github.io/chrome-for-testing/)
-   - Install the stable ChromeDriver .zip file according to your PC
-   - Unzip the downloaded folder in linkedin-analyzer/drivers
-
-5. **(Linux only) Install Chrome and Chromedriver if not already installed**
-   ```sh
-   sudo apt update
-   sudo apt install chromium-browser chromium-chromedriver xvfb -y
-   ```
-   - On Windows or Mac, make sure Chrome is installed and Chromedriver matches your Chrome version.
 
 ---
 
 ## ▶️ How to Run the App
 
-1. **Start the web app**
-   ```sh
-   python main.py
-   ```
-   - The app will show a local address (usually http://127.0.0.1:5000)
-   - Open this address in your web browser.
+**Run in web mode (recommended):**
+```bash
+python main.py
+```
+- The app will show a local address (usually `http://127.0.0.1:5000`).
+- Open this address in your browser.
+
+**Run in console mode (optional):**
+```bash
+python main.py --mode console
+```
+> In console mode, the scraping runs directly in the terminal instead of the web UI.
 
 ---
 
-## 🖥️ How to Use
+## ⚙️ Headless Mode
+
+By default, the scraper runs **with a visible browser window** so you can log in manually.
+
+- To enable headless mode (no visible browser window), update `main.py`:
+  ```python
+  profile_data = scrape_linkedin_profile(profile_url, headless=True)
+  ```
+  in both `analyze()` and `api_analyze()` functions.
+
+**Important:**  
+You **must log in once** with `headless=False` so your session is saved. After that, you can run headless.
+
+---
+
+## 🖥️ How It Works
 
 1. Open the web page shown in your terminal.
-2. Enter a LinkedIn profile URL (e.g., https://www.linkedin.com/in/example).
-3. The app will open a browser window for you to log in to LinkedIn (this is needed for scraping).
-4. Wait a few seconds while the app scrapes the profile.
-5. The AI summary will appear on the results page for you to copy or download!
+2. Enter a LinkedIn profile URL (e.g., `https://www.linkedin.com/in/example`).
+3. The app opens a **Chromium browser** — log in to LinkedIn if asked.
+4. Once logged in, your session is saved in `playwright_user_data`.
+5. The scraper fetches data, sends it to Gemini, and shows the AI summary.
+6. Copy or download your result.
 
 ---
 
 ## 🐞 Troubleshooting
-- **Chrome/Chromedriver errors:**
-  - Make sure both are installed and versions match.
-  - On Linux, update with:
-    ```sh
-    sudo apt install --only-upgrade chromium-browser chromium-chromedriver
-    ```
-- **Gemini API key not found:**
-  - Make sure `.env` exists and contains your key (no spaces or quotes).
-- **LinkedIn scraping fails:**
-  - Log in when the browser opens.
-  - Only public info can be scraped.
-  - Avoid too many requests to prevent being blocked.
-- **App not opening:**
-  - Check the terminal for the correct address.
-  - Make sure nothing else is using port 5000.
+
+- **Browser not found:**  
+  ```bash
+  playwright install
+  ```
+- **Manual login:**  
+  Your login is saved after the first run.
+- **Invalid API key:**  
+  Make sure `.env` is set up correctly with no extra spaces or quotes.
+- **LinkedIn blocks scraping:**  
+  - Be patient — scraping takes time.
+  - Avoid sending too many requests.
+- **Port already in use:**  
+  - Make sure port `5000` is free or change it in `config.py`.
 
 ---
 
 ## 🔒 Security Notes
-- Never share your Gemini API key.
-- Only scrape profiles you have permission to view.
-- Do not use this for commercial scraping or spam.
+
+- Keep your Gemini API key secret.
+- Only scrape profiles you’re allowed to view.
+- Do not use this tool for bulk scraping.
+- Respect LinkedIn’s Terms of Service — this is for **personal, educational use** only.
 
 ---
 
 ## ⚠️ Legal Disclaimer
-This tool is for educational and personal use only. Scraping LinkedIn may violate their Terms of Service. The author takes no responsibility for misuse.
+
+This tool is for **personal learning purposes only**.  
+Scraping LinkedIn may violate their Terms of Service.  
+Use responsibly — the author is not responsible for misuse.
 
 ---
+
 ## 📁 Project Structure
+
 ```
 linkedin-analyzer/
-├── main.py           # The main app (runs the web server)
-├── scraper.py        # Scrapes LinkedIn profiles
-├── summarizer.py     # Talks to Gemini AI
-├── config.py         # Settings
-├── requirements.txt  # Python packages needed
-├── templates/        # Web page HTML files
+├── main.py           # Main app (web server)
+├── scraper.py        # Playwright scraping logic
+├── summarizer.py     # Gemini API integration
+├── config.py         # App settings
+├── requirements.txt  # Python dependencies
+├── templates/        # HTML templates
 │   ├── index.html
 │   └── result.html
 └── README.md         # This file
@@ -120,15 +148,16 @@ linkedin-analyzer/
 ---
 
 ## 📚 Learn More
-- [Python basics](https://www.learnpython.org/)
-- [Flask web framework](https://flask.palletsprojects.com/)
-- [Selenium for web scraping](https://selenium-python.readthedocs.io/)
+
+- [Python Basics](https://www.learnpython.org/)
+- [Flask Web Framework](https://flask.palletsprojects.com/)
+- [Playwright for Python](https://playwright.dev/python/)
 - [Google Gemini API](https://aistudio.google.com/app/apikey)
 
 ---
 
----
 ## 👤 Author
-Created by [Vivek] — feel free to check my [LinkedIn](https://www.linkedin.com/in/vivekpawar-ved/).
 
-**Enjoy analyzing LinkedIn profiles with AI!**
+Created by **Vivek Pawar** — [Connect on LinkedIn](https://www.linkedin.com/in/vivekpawar-ved/)
+
+**🚀 Happy analyzing LinkedIn profiles with AI!**

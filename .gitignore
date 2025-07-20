@@ -10,7 +10,7 @@ __pycache__/
 .env
 
 # Local drivers (chromedriver)
-drivers/
+playwright_user_data/
 
 # Logs or saved scrape results (optional)
 *.log
