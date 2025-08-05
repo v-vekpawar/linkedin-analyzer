@@ -51,7 +51,7 @@ def run_console_mode():
     
     # Scrape the profile
     try:
-        profile_data = scrape_linkedin_profile(profile_url, headless=True)
+        profile_data = scrape_linkedin_profile(profile_url, headless=False)
         
         if not profile_data:
             print("\n\n\t\t❌ Failed to scrape profile data\n\n")
@@ -197,6 +197,7 @@ def create_flask_app():
                         {'title': 'Junior Developer', 'company': 'Web Solutions'}
                     ],
                     'skills': ['Python', 'JavaScript', 'React', 'Node.js', 'AWS', 'Docker', 'Git', 'SQL', 'MongoDB', 'REST APIs'],
+                    'education': ['Bachelor of Science in Computer Science', 'Master of Science in Artificial Intelligence'],
                     'url': profile_url
                 }
                 flash('Using sample data for demonstration', 'info')
@@ -239,7 +240,7 @@ def create_flask_app():
                 return jsonify({'error': 'Gemini API key not configured'}), 500
             
             # Scrape profile
-            profile_data = scrape_linkedin_profile(profile_url, headless=False)
+            profile_data = scrape_linkedin_profile(profile_url, headless=True)
             
             if not profile_data:
                 return jsonify({'error': 'Failed to scrape profile data'}), 400
