@@ -240,7 +240,7 @@ def create_flask_app():
                 return jsonify({'error': 'Gemini API key not configured'}), 500
             
             # Scrape profile
-            profile_data = scrape_linkedin_profile(profile_url, headless=True)
+            profile_data = scrape_linkedin_profile(profile_url, headless=False)
             
             if not profile_data:
                 return jsonify({'error': 'Failed to scrape profile data'}), 400
