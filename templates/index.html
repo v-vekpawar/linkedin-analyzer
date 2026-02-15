@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinkedIn Profile Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'css/index_style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="header">
+                <h1><i class="fab fa-linkedin"></i> LinkedIn Profile Analyzer</h1>
+                <p>Analyze LinkedIn profiles using AI</p>
+            </div>
+            
+            <div class="form-container">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ 'danger' if category == 'error' else 'info' }} alert-dismissible fade show" role="alert">
+                                <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'info-circle' }}"></i>
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" action="{{ url_for('analyze') }}" id="analyzeForm">
+                    <div class="mb-4">
+                        <label for="profile_url" class="form-label">
+                            <i class="fas fa-link"></i> LinkedIn Profile URL
+                        </label>
+                        <input type="url" 
+                               class="form-control" 
+                               id="profile_url" 
+                               name="profile_url" 
+                               placeholder="https://www.linkedin.com/in/username"
+                               required>
+                        <div class="form-text">
+                            Enter the full LinkedIn profile URL you want to Analyze
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="analysis_mode" class="form-label">
+                            <i class="fas fa-file-alt"></i> Analysis Type
+                        </label>                        
+                        <select class="form-select" id="analysis_mode" name="analysis_mode">
+                            <option value="about_profile">Tell me About this Profile</option>
+                            <option value="approach_person">Tell me how to approach this person</option>
+                            <option value="compatibility_score">Check Compatibility Score</option>
+                          </select>
+                          
+                        <div class="form-text">
+                            Choose the Analysis type
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4" id="user_linkedin_url_container" style="display: none;">
+                        <label for="user_url" class="form-label">
+                            <i class="fas fa-user-tie"></i> Your LinkedIn URL
+                        </label>
+                        <input type="url" 
+                               class="form-control" 
+                               id="user_url" 
+                               name="user_url" 
+                               placeholder="https://www.linkedin.com/in/your-username">
+                        <div class="form-text">
+                            Enter your LinkedIn profile URL to compare compatibility
+                        </div>
+                    </div>
+                    
+                    <div class="sample-data-toggle">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="use_sample" name="use_sample">
+                            <label class="form-check-label" for="use_sample">
+                                <i class="fas fa-flask"></i> Use Sample Data (for testing without scraping)
+                            </label>
+                        </div>
+                        <small class="text-muted">
+                            Check this to test the Analyzation with sample data instead of scraping a real profile
+                        </small>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="button" class="btn btn-secondary me-md-2" onclick="clearForm()">
+                            <i class="fas fa-eraser"></i> Clear
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-magic"></i> Analyze Profile
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-3">Scraping profile and generating result...</p>
+                    <p class="text-muted">This may take a few moments</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-4 d-flex align-items-stretch">
+            <div class="col-md-4 d-flex">
+                <div class="feature-card flex-fill d-flex flex-column">
+                    <div class="feature-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h5>Usage Tips</h5>
+                    <p class="mb-0">
+                        Use this tool responsibly! Do not scrape too many LinkedIn profiles in a short period, as this may result in your account being blocked by LinkedIn. Always respect LinkedIn's terms of service and use the analyzer for personal or educational purposes only.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex">
+                <div class="feature-card flex-fill d-flex flex-column">
+                    <div class="feature-icon">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <h5>Project Purpose</h5>
+                    <p class="mb-0">
+                        This project is intended for educational use only. Please do not use it to violate any laws, LinkedIn's terms, or ethical guidelines. The goal is to learn about web scraping, AI, and automation in a responsible way.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4 d-flex">
+                <div class="feature-card flex-fill d-flex flex-column">
+                    <div class="feature-icon">
+                        <a href="https://github.com/yourusername/linkedin-analyzer" target="_blank" style="color: #333; text-decoration: none;">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                    <h5>GitHub & Support</h5>
+                    <p class="mb-0">
+                        View the project on <a href="https://github.com/yourusername/linkedin-analyzer" target="_blank">GitHub</a>.<br>
+                        If you like this project, please give it a ⭐ on GitHub to support further development!
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static',filename='js/index_script.js') }}"></script>
+</body>
+</html>

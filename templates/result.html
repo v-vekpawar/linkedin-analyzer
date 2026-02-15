@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis Result - LinkedIn Profile Analyzer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/result_style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="main-container">
+            <div class="header">
+                <h1><i class="fas fa-check-circle"></i> Result Generated Successfully!</h1>
+                <p>Here's your profile analysis</p>
+            </div>
+            
+            <div class="content-container">
+                <!-- Summary Section -->
+                <div class="summary-card">
+                    <h2><i class="fas fa-quote-left"></i> {{ analysis_result.mode.title() }}</h2>
+                    <div class="summary-text" id="summaryText" style="white-space: pre-wrap;">
+                        {{ analysis_result.result }}
+                      </div>                      
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button class="copy-btn" onclick="copySummary()">
+                            <i class="fas fa-copy"></i> Copy Result
+                        </button>
+                        <!-- <div class="metadata">
+                            <i class="fas fa-info-circle"></i>
+                            Generated using {{ analysis_result.model }}
+                        </div> -->
+                    </div>
+                </div>
+                
+                <!-- Profile Information -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="profile-section">
+                            <h3><i class="fas fa-user"></i> Basic Information</h3>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-user-circle info-icon"></i>
+                                <div>
+                                    <strong>Name:</strong> {{ profile_data.name }}
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <i class="fas fa-link info-icon"></i>
+                                <div>
+                                    <strong>Profile URL:</strong> 
+                                    <a href="{{ profile_data.url }}" target="_blank" class="text-decoration-none">
+                                        View Profile <i class="fas fa-external-link-alt"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- <div class="profile-section">
+                            <h3><i class="fas fa-graduation-cap"></i> Education</h3>
+                            {% if profile_data.education and profile_data.education|length > 0 %}
+                                {% for education in profile_data.education %}
+                                    <span class="skill-tag">{{ education }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No education information available</p>
+                            {% endif %}
+                        </div> -->
+                        
+                        <!-- <div class="profile-section">
+                            <h3><i class="fas fa-tools"></i> Skills</h3>
+                            {% if profile_data.skills and profile_data.skills|length > 0 %}
+                                <div id="skills-container">
+                                    <div id="top-skills">
+                                        {% for skill in profile_data.skills[:5] %}
+                                            <span class="skill-tag">{{ skill }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <div id="remaining-skills" style="display: none;">
+                                        {% for skill in profile_data.skills[5:] %}
+                                            <span class="skill-tag">{{ skill }}</span>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                {% if profile_data.skills|length > 5 %}
+                                    <button class="skills-toggle-btn mt-2" onclick="toggleAllSkills()">
+                                        <i class="fas fa-chevron-down me-1"></i>
+                                        View All Skills ({{ profile_data.skills|length }} total)
+                                    </button>
+                                {% endif %}
+                            {% else %}
+                                <p class="text-muted">No skills information available</p>
+                            {% endif %}
+                        </div> -->
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <!-- <div class="profile-section">
+                            <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
+                            {% if profile_data.experience and profile_data.experience|length > 0 %}
+                                {% for exp in profile_data.experience %}
+                                    {% if exp is mapping %}
+                                        <div class="experience-item">
+                                            <div class="experience-title">{{ exp.title }}</div>
+                                            <div class="experience-company">{{ exp.company }}</div>
+                                        </div>
+                                    {% else %}
+                                        <div class="experience-item">
+                                            <div class="experience-title">{{ exp }}</div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted">No work experience information available</p>
+                            {% endif %}
+                        </div>
+                        
+                        {% if profile_data.headline %}
+                        <div class="profile-section">
+                            <h3><i class="fas fa-quote-right"></i> Current Headline</h3>
+                            <div class="summary-highlight">
+                                {{ profile_data.headline }}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if profile_data.about %}
+                        <div class="profile-section">
+                            <h3><i class="fas fa-info-circle"></i> About Section</h3>
+                            <div class="collapsible-section">
+                                <button class="collapsible-header" onclick="toggleCollapsible(this)">
+                                    <i class="fas fa-chevron-down me-2"></i>
+                                    View About Section
+                                </button>
+                                <div class="collapsible-content">
+                                    <p style="white-space: pre-wrap;">{{ profile_data.about }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %} -->
+                    </div>
+                </div>
+                
+                <!-- Metadata -->
+                <!-- <div class="metadata text-center">
+                    <i class="fas fa-robot me-2"></i>
+                    Generated using {{ analysis_result.model }} 
+                    {% if analysis_result.temperature %}
+                        • Temperature: {{ analysis_result.temperature }}
+                    {% endif %}
+                    {% if analysis_result.generated_at %}
+                        • {{ analysis_result.generated_at }}
+                    {% endif %}
+                </div> -->
+                
+                <!-- Action Buttons -->
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary me-3">
+                        <i class="fas fa-arrow-left"></i> Do Another Analysis
+                    </a>
+                    <!-- <button class="btn btn-primary" onclick="downloadSummary()">
+                        <i class="fas fa-download"></i> Download Result
+                    </button> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/result_script.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+playwright
+flask
+pyotp
+python-dotenv
+google-genai
