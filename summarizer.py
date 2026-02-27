@@ -285,10 +285,7 @@ Now generate the compatibility score, reasoning, and recommendation for User 1 a
         
         for pattern in preamble_patterns:
             text = re.sub(pattern, '', text, flags=re.IGNORECASE)
-        
-        # Remove markdown bold formatting
-        text = re.sub(r'\*\*([^*]+)\*\*', r'\1', text)  
-        text = re.sub(r'\*([^*]+)\*', r'\1', text)      
+
         
         # Normalize whitespace
         text = re.sub(r'\n{3,}', '\n\n', text)
