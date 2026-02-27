@@ -1,112 +1,72 @@
-function toggleCollapsible(element) {
-    const content = element.nextElementSibling;
-    const icon = element.querySelector('i');
+function copyResults() {
+    // Target the main content area string, removing excess newlines
+    const resultContainer = document.getElementById('ai-results-container');
+    if (!resultContainer) return;
 
-    if (content.classList.contains('active')) {
-        content.classList.remove('active');
-        element.classList.remove('active');
-        icon.className = 'fas fa-chevron-down me-2';
-    } else {
-        content.classList.add('active');
-        element.classList.add('active');
-        icon.className = 'fas fa-chevron-up me-2';
-    }
-}
+    // Retrieve raw inner text and clean up arbitrary spacing
+    let textToCopy = resultContainer.innerText;
+    textToCopy = textToCopy.replace(/\n{3,}/g, '\n\n').trim();
 
-function toggleAllSkills() {
-    const remainingSkills = document.getElementById('remaining-skills');
-    const button = event.target;
-    const icon = button.querySelector('i');
-
-    if (remainingSkills.style.display === 'none') {
-        remainingSkills.style.display = 'block';
-        icon.className = 'fas fa-chevron-up me-1';
-        button.innerHTML = '<i class="fas fa-chevron-up me-1"></i> Show Less Skills';
-    } else {
-        remainingSkills.style.display = 'none';
-        icon.className = 'fas fa-chevron-down me-1';
-        button.innerHTML = '<i class="fas fa-chevron-down me-1"></i> View All Skills ({{ profile_data.skills|length }} total)';
-    }
-}
-
-function copySummary() {
-    const summaryText = document.getElementById('summaryText').textContent;
-    navigator.clipboard.writeText(summaryText).then(function () {
-        const btn = event.target;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        const btn = document.getElementById('copyBtn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        btn.style.background = '#28a745';
+        btn.style.backgroundColor = '#057642'; // LinkedIn Success Green
+        btn.style.color = '#fff';
 
-        setTimeout(function () {
+        setTimeout(() => {
             btn.innerHTML = originalText;
-            btn.style.background = '#28a745';
+            btn.style.backgroundColor = '';
+            btn.style.color = '';
         }, 2000);
-    }).catch(function (err) {
-        console.error('[LinkedInAnalyzer] Could not copy text to clipboard:', err, { summaryLength: summaryText.length });
-        alert('Failed to copy summary to clipboard');
+    }).catch((err) => {
+        console.error('[LinkedInAnalyzer] Failed to copy text:', err);
+        alert('Failed to copy results to clipboard');
     });
 }
 
-// function downloadSummary() {
-//     const summaryText = document.getElementById('summaryText').textContent;
-//     const profileName = '{{ profile_data.name }}'.replace(/[^a-zA-Z0-9]/g, '_');
-//     const summaryType = '{{ analysis_result.mode }}';
+// Ensure first tab triggers active state bootstrap logic
+document.addEventListener("DOMContentLoaded", function () {
+    const triggerTabList = [].slice.call(document.querySelectorAll('#msgTabs button'));
+    if (triggerTabList.length > 0) {
+        const firstTab = new bootstrap.Tab(triggerTabList[0]);
+        firstTab.show();
+    }
+});
 
-//     const content = `LinkedIn Profile Analyzation
+function copySingleMessage(btn) {
+    // Prevent multiple clicks breaking the timeout rollback
+    if (btn.dataset.copying === 'true') return;
 
-// Profile: {{ profile_data.name }}
-// Type: ${summaryType}
-// Generated: ${new Date().toLocaleString()}
+    // Find the closest parent relative container and grab the message box
+    const container = btn.closest('.position-relative');
+    if (!container) return;
 
-// Result:
-// ${summaryText}
+    const messageBox = container.querySelector('.message-box');
+    if (!messageBox) return;
 
-// ------------------------------PROFILE INFORMATION:------------------------------
+    const textToCopy = messageBox.innerText.trim();
 
-// Name: {{ profile_data.name }}
+    btn.dataset.copying = 'true';
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        // Temporarily change button to Green Check
+        btn.innerHTML = '<i class="fas fa-check"></i> Copied';
+        btn.classList.remove('btn-outline-secondary');
+        btn.classList.add('btn-success');
+        btn.style.color = '#fff';
 
-// Headline: {{ profile_data.headline }}
+        setTimeout(() => {
+            btn.innerHTML = '<i class="fas fa-copy"></i>';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-outline-secondary');
+            btn.style.color = '';
 
-// About: 
-// {{ profile_data.about }}
-
-// Education:
-// {% for education in profile_data.education %}
-// - {{ education }}
-// {% endfor %}
-
-// Experience:
-// {% for exp in profile_data.experience %}
-// {% if exp is mapping %}
-// - {{ exp.title }} at {{ exp.company }}
-// {% else %}
-// - {{ exp }}
-// {% endif %}
-// {% endfor %}
-
-// Skills:
-// {% for skill in profile_data.skills %}
-// - {{ skill }}
-// {% endfor %}
-
-// Generated by LinkedIn Profile Analyzer
-// `;
-
-//     const blob = new Blob([content], { type: 'text/plain' });
-//     const url = window.URL.createObjectURL(blob);
-//     const a = document.createElement('a');
-//     a.href = url;
-//     a.download = `summary_${profileName}_${summaryType}.txt`;
-//     document.body.appendChild(a);
-//     a.click();
-//     window.URL.revokeObjectURL(url);
-//     document.body.removeChild(a);
-// }
-
-// Auto-scroll to summary on page load
-window.onload = function () {
-    document.querySelector('.summary-card').scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
+            // Allow clicking again
+            delete btn.dataset.copying;
+        }, 2000);
+    }).catch((err) => {
+        console.error('[LinkedInAnalyzer] Failed to copy single message:', err);
+        alert('Failed to copy this message to clipboard');
+        delete btn.dataset.copying;
     });
-};
+}

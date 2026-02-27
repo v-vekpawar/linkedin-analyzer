@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,168 +9,207 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/result_style.css') }}">
 </head>
-<body>
-    <div class="container">
-        <div class="main-container">
-            <div class="header">
-                <h1><i class="fas fa-check-circle"></i> Result Generated Successfully!</h1>
-                <p>Here's your profile analysis</p>
-            </div>
-            
-            <div class="content-container">
-                <!-- Summary Section -->
-                <div class="summary-card">
-                    <h2><i class="fas fa-quote-left"></i> {{ analysis_result.mode.title() }}</h2>
-                    <div class="summary-text" id="summaryText" style="white-space: pre-wrap;">
-                        {{ analysis_result.result }}
-                      </div>                      
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <button class="copy-btn" onclick="copySummary()">
-                            <i class="fas fa-copy"></i> Copy Result
-                        </button>
-                        <!-- <div class="metadata">
-                            <i class="fas fa-info-circle"></i>
-                            Generated using {{ analysis_result.model }}
-                        </div> -->
-                    </div>
-                </div>
-                
-                <!-- Profile Information -->
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="profile-section">
-                            <h3><i class="fas fa-user"></i> Basic Information</h3>
-                            
-                            <div class="info-item">
-                                <i class="fas fa-user-circle info-icon"></i>
-                                <div>
-                                    <strong>Name:</strong> {{ profile_data.name }}
-                                </div>
-                            </div>
-                            
-                            <div class="info-item">
-                                <i class="fas fa-link info-icon"></i>
-                                <div>
-                                    <strong>Profile URL:</strong> 
-                                    <a href="{{ profile_data.url }}" target="_blank" class="text-decoration-none">
-                                        View Profile <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
 
-                        <!-- <div class="profile-section">
-                            <h3><i class="fas fa-graduation-cap"></i> Education</h3>
-                            {% if profile_data.education and profile_data.education|length > 0 %}
-                                {% for education in profile_data.education %}
-                                    <span class="skill-tag">{{ education }}</span>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted">No education information available</p>
-                            {% endif %}
-                        </div> -->
-                        
-                        <!-- <div class="profile-section">
-                            <h3><i class="fas fa-tools"></i> Skills</h3>
-                            {% if profile_data.skills and profile_data.skills|length > 0 %}
-                                <div id="skills-container">
-                                    <div id="top-skills">
-                                        {% for skill in profile_data.skills[:5] %}
-                                            <span class="skill-tag">{{ skill }}</span>
-                                        {% endfor %}
-                                    </div>
-                                    
-                                    <div id="remaining-skills" style="display: none;">
-                                        {% for skill in profile_data.skills[5:] %}
-                                            <span class="skill-tag">{{ skill }}</span>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                                
-                                {% if profile_data.skills|length > 5 %}
-                                    <button class="skills-toggle-btn mt-2" onclick="toggleAllSkills()">
-                                        <i class="fas fa-chevron-down me-1"></i>
-                                        View All Skills ({{ profile_data.skills|length }} total)
-                                    </button>
-                                {% endif %}
-                            {% else %}
-                                <p class="text-muted">No skills information available</p>
-                            {% endif %}
-                        </div> -->
-                    </div>
-                    
-                    <div class="col-md-6">
-                        <!-- <div class="profile-section">
-                            <h3><i class="fas fa-briefcase"></i> Work Experience</h3>
-                            {% if profile_data.experience and profile_data.experience|length > 0 %}
-                                {% for exp in profile_data.experience %}
-                                    {% if exp is mapping %}
-                                        <div class="experience-item">
-                                            <div class="experience-title">{{ exp.title }}</div>
-                                            <div class="experience-company">{{ exp.company }}</div>
-                                        </div>
-                                    {% else %}
-                                        <div class="experience-item">
-                                            <div class="experience-title">{{ exp }}</div>
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted">No work experience information available</p>
-                            {% endif %}
+<body>
+    <div class="dashboard-container">
+        <div class="dashboard-grid">
+
+            <!-- LEFT SIDEBAR: Pofile Cards -->
+            <div class="sidebar">
+                <!-- Target Profile -->
+                <div class="li-card profile-card">
+                    <div class="li-card-body">
+                        <div class="profile-avatar-placeholder">
+                            <i class="fas fa-user"></i>
                         </div>
-                        
-                        {% if profile_data.headline %}
-                        <div class="profile-section">
-                            <h3><i class="fas fa-quote-right"></i> Current Headline</h3>
-                            <div class="summary-highlight">
-                                {{ profile_data.headline }}
-                            </div>
+                        <h2 class="profile-name">{{ profile_data.name }}</h2>
+                        <p class="profile-headline">{{ profile_data.headline }}</p>
+                        <a href="{{ profile_data.url }}" target="_blank" class="profile-link">
+                            View LinkedIn Profile <i class="fas fa-external-link-alt"
+                                style="font-size:0.8rem; margin-left:4px;"></i>
+                        </a>
+
+                        {% if profile_data.skills %}
+                        <div class="skills-wrapper">
+                            {% for skill in profile_data.skills[:4] %}
+                            <span class="skill-chip">{{ skill }}</span>
+                            {% endfor %}
                         </div>
                         {% endif %}
-                        
-                        {% if profile_data.about %}
-                        <div class="profile-section">
-                            <h3><i class="fas fa-info-circle"></i> About Section</h3>
-                            <div class="collapsible-section">
-                                <button class="collapsible-header" onclick="toggleCollapsible(this)">
-                                    <i class="fas fa-chevron-down me-2"></i>
-                                    View About Section
-                                </button>
-                                <div class="collapsible-content">
-                                    <p style="white-space: pre-wrap;">{{ profile_data.about }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %} -->
                     </div>
                 </div>
-                
-                <!-- Metadata -->
-                <!-- <div class="metadata text-center">
-                    <i class="fas fa-robot me-2"></i>
-                    Generated using {{ analysis_result.model }} 
-                    {% if analysis_result.temperature %}
-                        • Temperature: {{ analysis_result.temperature }}
+
+                <!-- User Profile (Only for compatibility mode) -->
+                {% if analysis_result.mode == 'compatibility_score' and user_data %}
+                <div class="li-card profile-card">
+                    <div class="li-card-body">
+                        <div class="profile-avatar-placeholder" style="background: #e3f2fd; color: #0a66c2;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <h2 class="profile-name">You: {{ user_data.name }}</h2>
+                        <p class="profile-headline">{{ user_data.headline }}</p>
+                        <a href="{{ user_data.url }}" target="_blank" class="profile-link">
+                            View Your Profile <i class="fas fa-external-link-alt"
+                                style="font-size:0.8rem; margin-left:4px;"></i>
+                        </a>
+
+                        {% if user_data.skills %}
+                        <div class="skills-wrapper">
+                            {% for skill in user_data.skills[:4] %}
+                            <span class="skill-chip">{{ skill }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- RIGHT COLUMN: AI Results -->
+            <div class="main-content" id="ai-results-container">
+                <div class="li-card">
+
+                    {% set result = analysis_result.result %}
+
+                    <!-- ABOUT PROFILE MODE -->
+                    {% if analysis_result.mode == 'about_profile' %}
+                    <div class="banner-top">
+                        <h2>Executive Summary</h2>
+                        <div class="text-white mt-1">{{ result.who_they_are }}</div>
+                        <div class="seniority-ribbon">{{ result.seniority_level }} Profile</div>
+                    </div>
+
+                    <div class="split-view">
+                        <div class="strengths-col">
+                            <h3 class="section-title">Key Strengths</h3>
+                            <ul class="strengths-list">
+                                {% for strength in result.key_strengths %}
+                                <li>{{ strength }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <div class="career-col">
+                            <h3 class="section-title">Career Journey</h3>
+                            <div class="timeline">
+                                <div class="timeline-dot"></div>
+                                <div class="timeline-content">{{ result.career_trajectory }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="yellow-callout">
+                        <i class="far fa-lightbulb"></i>
+                        <div class="yellow-callout-text">
+                            <h4>Conversation Starters</h4>
+                            <p>{{ result.potential_talking_points }}</p>
+                        </div>
+                    </div>
+
+                    <!-- APPROACH PERSON MODE -->
+                    {% elif analysis_result.mode == 'approach_person' %}
+                    <div class="border-bottom p-4">
+                        <h3 class="section-title mb-0">Suggested Outreach Angles</h3>
+                    </div>
+                    <div class="angles-grid">
+                        {% for angle in result.outreach_angles %}
+                        <div class="angle-card">
+                            <h5>{{ angle.angle_type }}</h5>
+                            <p>{{ angle.explanation }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="border-top border-bottom p-4 bg-light">
+                        <h3 class="section-title mb-0">Message Templates</h3>
+                    </div>
+                    <div class="messages-section mt-3">
+                        <ul class="nav nav-tabs" id="msgTabs" role="tablist">
+                            <!-- Dynamically create tabs based on available messages -->
+                            {% set ns = namespace(active=false) %}
+                            {% for key, msg in result.personalized_messages.items() %}
+                            {% if msg and msg|length > 0 %}
+                            <li class="nav-item" role="presentation">
+                                <button
+                                    class="nav-link {% if not ns.active %}active{% set ns.active = true %}{% endif %}"
+                                    id="tab-{{ key }}" data-bs-toggle="tab" data-bs-target="#pane-{{ key }}"
+                                    type="button" role="tab">
+                                    {{ key.replace('_', ' ').title() }}
+                                </button>
+                            </li>
+                            {% endif %}
+                            {% endfor %}
+                        </ul>
+
+                        <div class="tab-content" id="msgTabsContent">
+                            {% set ns2 = namespace(active=false) %}
+                            {% for key, msg in result.personalized_messages.items() %}
+                            {% if msg and msg|length > 0 %}
+                            <div class="tab-pane fade {% if not ns2.active %}show active{% set ns2.active = true %}{% endif %}"
+                                id="pane-{{ key }}" role="tabpanel">
+                                <div class="position-relative">
+                                    <div class="message-box pe-5">{{ msg }}</div>
+                                    <button
+                                        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-3 copy-msg-btn"
+                                        onclick="copySingleMessage(this)" title="Copy this message">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- COMPATIBILITY SCORE MODE -->
+                    {% elif analysis_result.mode == 'compatibility_score' %}
+                    <div style="text-align:center; padding-top: 2rem;">
+                        <h3
+                            style="color: var(--li-text-muted); font-size: 1.1rem; text-transform:uppercase; letter-spacing:1px; margin-bottom: 2rem;">
+                            Match Analysis</h3>
+                    </div>
+
+                    <div class="score-container">
+                        <div class="circular-progress" style="--progress: {{ result.compatibility_score }}%;">
+                            <span class="progress-value">{{ result.compatibility_score }}</span><span
+                                style="font-size: 1.5rem; font-weight: bold; color: #057642; margin-top:-10px;">%</span>
+                        </div>
+
+                        <div style="width: 100%; max-width: 600px; margin-top:1rem;">
+                            <h3 class="section-title">Why this score?</h3>
+                            <ul class="strengths-list">
+                                {% for point in result.why %}
+                                <li>{{ point }}</li>
+                                {% endfor %}
+                            </ul>
+
+                            <div
+                                class="recommendation-alert {% if 'no' in result.recommendation.lower() %}no{% endif %}">
+                                <strong>Recommendation:</strong> {{ result.recommendation }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {% else %}
+                    <!-- Fallback if JSON is somehow broken -->
+                    <div class="p-4">
+                        <pre style="white-space:pre-wrap;">{{ result.raw_text or result }}</pre>
+                    </div>
                     {% endif %}
-                    {% if analysis_result.generated_at %}
-                        • {{ analysis_result.generated_at }}
-                    {% endif %}
-                </div> -->
-                
-                <!-- Action Buttons -->
-                <div class="text-center mt-4">
-                    <a href="{{ url_for('index') }}" class="btn btn-secondary me-3">
-                        <i class="fas fa-arrow-left"></i> Do Another Analysis
-                    </a>
-                    <!-- <button class="btn btn-primary" onclick="downloadSummary()">
-                        <i class="fas fa-download"></i> Download Result
-                    </button> -->
+
+                    <!-- Action Bar -->
+                    <div class="action-bar">
+                        <a href="{{ url_for('index') }}" class="btn-li-secondary">Analyze Another</a>
+                        <button class="btn-li-primary" id="copyBtn" onclick="copyResults()">Copy Data</button>
+                    </div>
+
                 </div>
             </div>
+
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/result_script.js') }}"></script>
 </body>
+
 </html>
