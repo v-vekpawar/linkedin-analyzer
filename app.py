@@ -184,6 +184,7 @@ def create_flask_app():
                     flash('Please provide a valid LinkedIn profile URL for your profile', 'error')
                     return redirect(url_for('index'))
             
+            user_data = None
             if use_sample:
                 # Use sample data for testing
                 profile_data = {
@@ -243,7 +244,8 @@ def create_flask_app():
                 return redirect(url_for('index'))
             
             return render_template('result.html', 
-                profile_data=profile_data, 
+                profile_data=profile_data,
+                user_data=user_data,
                 analysis_result=analysis_result)
             
         except Exception as e:

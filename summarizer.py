@@ -1,5 +1,6 @@
 import os
 import logging
+import json
 from google import genai
 from dotenv import load_dotenv
 from datetime import datetime
@@ -51,10 +52,33 @@ class ProfileAnalyzer:
             except (AttributeError, IndexError) as e:
                 logger.exception(f"Error extracting text: {e}")
                 text = str(response)
-            text = self._clean_output(text)
+            
+            # Extract JSON block if it has markdown formatting
+            text = text.strip()
+            if text.startswith('```json'):
+                text = text[7:]
+            elif text.startswith('```'):
+                text = text[3:]
+            
+            if text.endswith('```'):
+                text = text[:-3]
+                
+            text = text.strip()
+            
+            # Just to be extremely safe, find the JSON braces
+            start_idx = text.find('{')
+            end_idx = text.rfind('}')
+            if start_idx != -1 and end_idx != -1 and end_idx >= start_idx:
+                text = text[start_idx:end_idx+1]
+                
+            try:
+                parsed_json = json.loads(text)
+            except json.JSONDecodeError:
+                logger.warning("Failed to parse JSON. Falling back to raw text dict wrapper.")
+                parsed_json = {"raw_text": text}
 
             result = {
-                "result": text,
+                "result": parsed_json,
                 "mode": mode,
                 "profile_name": profile_data.get("name", "Unknown"),
                 "model": self.model,
@@ -130,26 +154,30 @@ Education: {profile_data["education"]}
 Certifications: {profile_data["certifications"]}
 
 Output Requirements:
-- Keep it concise (~150 words max) for a 30-second read.
-- Present as a numbered list with these sections:
-    1. Who they are (summary of professional identity)
-    2. What they specialize in (core skills and expertise)
-    3. Seniority level (junior, mid, senior, executive)
-    4. Key strengths (top 3–5)
-    5. Career trajectory (brief progression highlights)
-    6. Potential talking points (notable certifications, projects, achievements)
+- MUST output strictly as a JSON object, with NO markdown wrappers.
+- The JSON object should have the following schema:
+{{
+  "who_they_are": "string (summary of professional identity)",
+  "what_they_specialize_in": "string (core skills and expertise)",
+  "seniority_level": "string (junior, mid, senior, executive)",
+  "key_strengths": ["array of 3-5 strings"],
+  "career_trajectory": "string (brief progression highlights)",
+  "potential_talking_points": "string (notable certifications, projects, achievements)"
+}}
 - Write in a professional, approachable tone suitable for networking or quick briefings.
-- If any field is missing or empty, skip that section gracefully.
+- If any field is missing or empty, skip that section gracefully (provide empty string or array).
 
-Example Output:
-1. Who they are: Senior product manager with 10+ years in SaaS and fintech.
-2. What they specialize in: Product strategy, Agile roadmapping, team leadership.
-3. Seniority level: Senior
-4. Key strengths: Strategic thinking, cross-functional leadership, product execution.
-5. Career trajectory: Progressed from product manager to senior product manager at TechCorp; MBA from Harvard.
-6. Potential talking points: PMP and CSPO certified; led launch of flagship SaaS product.
+Example JSON Output:
+{{
+  "who_they_are": "Senior product manager with 10+ years in SaaS and fintech.",
+  "what_they_specialize_in": "Product strategy, Agile roadmapping, team leadership.",
+  "seniority_level": "Senior",
+  "key_strengths": ["Strategic thinking", "cross-functional leadership", "product execution"],
+  "career_trajectory": "Progressed from product manager to senior product manager at TechCorp; MBA from Harvard.",
+  "potential_talking_points": "PMP and CSPO certified; led launch of flagship SaaS product."
+}}
 
-Now generate a 30-second intelligence brief using the Profile Information provided.
+Now generate a 30-second intelligence brief as a strict JSON object using the Profile Information provided.
 """
 
     def _approach_prompt(self,profile_data):
@@ -168,48 +196,54 @@ Certifications: {profile_data["certifications"]}
 
 Output Requirements:
 
+- MUST output strictly as a JSON object, with NO markdown wrappers.
+- The JSON object should have the following schema:
+{{
+  "outreach_angles": [
+    {{
+      "angle_type": "string (e.g. Shared background angle, Career compliment angle, etc.)",
+      "explanation": "string (1-2 sentence explanation of why it works)"
+    }}
+  ],
+  "personalized_messages": {{
+    "casual_connect": "string (friendly tone, references shared background or interest) OR empty string if not applicable",
+    "value_first_connect": "string (explains value you can provide) OR empty string if not applicable",
+    "recruiting_outreach": "string (professional tone, highlights opportunity) OR empty string if not applicable",
+    "sales_outreach": "string (contextualized pitch, references shared interest) OR empty string if not applicable",
+    "mentorship_ask": "string (respectful, personalized reasoning) OR empty string if not applicable",
+    "collaboration_proposal": "string (concise, actionable, solution-oriented) OR empty string if not applicable"
+  }}
+}}
+
 Step 1: Suggested Outreach Angles
-- Generate 3–5 personalized outreach angles using the following types (use only relevant angles if some don’t apply):
-    1. Shared background angle
-    2. Career compliment angle
-    3. Industry insight angle
-    4. Value-driven pitch angle
-    5. Curiosity angle
-- For each angle, provide a 1–2 sentence explanation of why it works.
+- Generate 3-5 personalized outreach angles.
 
 Step 2: Personalized LinkedIn Messages
-- For each outreach angle, generate a LinkedIn message in 60–120 words.
-- Include the following message types (generate only messages appropriate for the profile and angle):
-    1. Casual connect – friendly tone, references shared background or interest
-    2. Value-first connect – explains value you can provide
-    3. Recruiting outreach – professional tone, highlights opportunity
-    4. Sales outreach – contextualized pitch, references shared interest
-    5. Mentorship ask – respectful, personalized reasoning
-    6. Collaboration proposal – concise, actionable, solution-oriented
+- For each message type, generate a LinkedIn message in 60-120 words (populate only the applicable ones, empty string for others).
 
 Tone & Style:
 - Professional, approachable, and contextually relevant.
 - Do not copy long sentences from the profile; synthesize and summarize.
-- Each message should feel personal, natural, and tailored to the recipient.
 
-Example Output:
+Example JSON Output:
+{{
+  "outreach_angles": [
+    {{
+      "angle_type": "Shared background angle",
+      "explanation": "You both studied at the same university, making an easy personal connection."
+    }}
+  ],
+  "personalized_messages": {{
+    "casual_connect": "Hi there, noticed we both went to X university! ...",
+    "value_first_connect": "",
+    "recruiting_outreach": "",
+    "sales_outreach": "",
+    "mentorship_ask": "",
+    "collaboration_proposal": ""
+  }}
+}}
 
-Step 1: Suggested Outreach Angles
-1. Shared background angle: You both studied at the same university, making an easy personal connection.
-2. Career compliment angle: Their recent promotion shows strong leadership in SaaS, a point to highlight.
-3. Industry insight angle: They work in renewable energy trends that align with your expertise.
-4. Value-driven pitch angle: Offer insights from your overlapping skills in marketing automation.
-5. Curiosity angle: Ask an engaging question about their recent project.
-
-Step 2: Personalized Messages
-1. Casual connect: [60–120 words, friendly tone, references shared background]
-2. Value-first connect: [60–120 words, explains value you can offer]
-3. Recruiting outreach: [60–120 words, professional tone, highlights opportunity]
-4. Sales outreach: [60–120 words, contextualized pitch with shared interest]
-5. Mentorship ask: [60–120 words, respectful, personalized reasoning]
-6. Collaboration proposal: [60–120 words, concise and actionable]
-
-Now generate the outreach angles and messages using the Profile Information provided.
+Now generate the outreach angles and messages as a strict JSON object using the Profile Information provided.
 """            
 
     def _compatibility_prompt(self,user_data, profile_data):
@@ -246,28 +280,32 @@ Evaluation Dimensions:
 - Network proximity (if available)
 
 Output Requirements:
-1. **Compatibility Score:** A percentage (0–100%) indicating overall alignment.
-2. **Explanation:** 3–5 concise bullet points summarizing why the score was assigned. Include examples like shared skills, similar industries, overlapping career stages, education, or network connections.
-3. **Recommendation:** Clearly state whether User 1 should connect with User 2. Base the decision on the compatibility score, alignment of skills, industry relevance, and networking potential.
+- MUST output strictly as a JSON object, with NO markdown wrappers.
+- The JSON object should have the following schema:
+{{
+  "compatibility_score": "integer (0 to 100)",
+  "why": ["array", "of", "3-5", "bullet points"],
+  "recommendation": "string (Yes/No and reason)"
+}}
 
 Tone & Style:
 - Professional, objective, and concise.
 - Focus on actionable insights rather than repeating profile details.
 
-Example Output:
+Example JSON Output:
+{{
+  "compatibility_score": 78,
+  "why": [
+    "3 shared skills: Python, SQL, Machine Learning",
+    "Similar industry experience in SaaS",
+    "Career stage alignment: both senior-level professionals",
+    "Both attended top-tier universities",
+    "2nd-degree connection on LinkedIn"
+  ],
+  "recommendation": "Yes, User 1 should connect with User 2, as the high compatibility and shared skills indicate a strong potential for meaningful engagement."
+}}
 
-Compatibility: 78%
-
-Why:
-- 3 shared skills: Python, SQL, Machine Learning
-- Similar industry experience in SaaS
-- Career stage alignment: both senior-level professionals
-- Both attended top-tier universities
-- 2nd-degree connection on LinkedIn
-
-Recommendation: Yes, User 1 should connect with User 2, as the high compatibility and shared skills indicate a strong potential for meaningful professional engagement.
-
-Now generate the compatibility score, reasoning, and recommendation for User 1 and User 2 using the profile data provided.
+Now generate the compatibility score, reasoning, and recommendation for User 1 and User 2 as a strict JSON object using the profile data provided.
 
 """
     def _clean_output(self, text):
