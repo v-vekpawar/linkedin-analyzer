@@ -13,7 +13,7 @@ document.getElementById('analysis_mode').addEventListener('change', function() {
             yourUrlInput.setAttribute('required', 'required');
         }
         
-        // ✅ FIX: If sample is checked, auto-fill user_url too
+        // FIX: If sample is checked, auto-fill user_url too
         if (useSampleCheckbox.checked) {
             yourUrlInput.value = 'https://www.linkedin.com/in/sample-user';
             yourUrlInput.removeAttribute('required');
@@ -35,7 +35,7 @@ document.getElementById('use_sample').addEventListener('change', function() {
         urlInput.value = 'https://www.linkedin.com/in/sampleuser';
         urlInput.removeAttribute('required');
         
-        // ✅ FIX: Also fill user_url if compatibility mode is selected
+        // FIX: Also fill user_url if compatibility mode is selected
         if (analysisMode === 'compatibility_score') {
             yourUrlInput.value = 'https://www.linkedin.com/in/sample-user';
             yourUrlInput.removeAttribute('required');
@@ -61,7 +61,7 @@ document.getElementById('analyzeForm').addEventListener('submit', function(e) {
         urlInput.value = 'https://www.linkedin.com/in/sampleuser';
         urlInput.removeAttribute('required');
         
-        // ✅ FIX: Also set user_url if compatibility mode
+        // FIX: Also set user_url if compatibility mode
         if (analysisMode === 'compatibility_score') {
             yourUrlInput.value = 'https://www.linkedin.com/in/sample-user';
             yourUrlInput.removeAttribute('required');

@@ -38,7 +38,7 @@ class LinkedInScraper:
             self.page.evaluate("window.scrollTo(0, 0)")
             self.random_delay(1, 2)
         except Exception as scroll_error:
-            logger.warning(f"Error scrolling page: {scroll_error}")
+            logger.exception(f"Error scrolling page: {scroll_error}")
 
         try:
             profile_data = {
@@ -55,7 +55,7 @@ class LinkedInScraper:
             return profile_data
 
         except Exception as e:
-            logger.error(f"Error scraping profile: {str(e)}")
+            logger.exception(f"Error scraping profile: {e}")
             return None
     
     def _extract_name(self):
@@ -64,7 +64,7 @@ class LinkedInScraper:
             element = self.page.query_selector("//h1")
             return element.inner_text().strip() if element else "Name not found"
         except Exception as e:
-            logger.error(f"Name extraction error: {str(e)}")
+            logger.exception(f"Name extraction error: {e}")
             return "Name not found"
         
     def _extract_headline(self):
@@ -72,7 +72,7 @@ class LinkedInScraper:
             element = self.page.query_selector("//h1/ancestor::div[1]/following-sibling::div[contains(@class,'text-body-medium')]")
             return element.inner_text().strip() if element else "Headline not found"
         except Exception as e:
-            logger.error(f"Headline extraction error: {str(e)}")
+            logger.exception(f"Headline extraction error: {e}")
             return "Headline not found"
     
     def _extract_about(self):
@@ -103,7 +103,7 @@ class LinkedInScraper:
                             return text
             return "About section not found"
         except Exception as e:
-            logger.error(f"About section extraction error: {str(e)}")
+            logger.exception(f"About section extraction error: {e}")
 
     def _extract_experience(self):
         try:
@@ -164,7 +164,7 @@ class LinkedInScraper:
             return experience_list
             
         except Exception as e:
-            logger.error(f"Experience extraction error: {str(e)}")
+            logger.exception(f"Experience extraction error: {e}")
             try:
                 self.page.go_back()
             except:
@@ -222,7 +222,7 @@ class LinkedInScraper:
             return skills_list
             
         except Exception as e:
-            logger.error(f"Skills extraction error: {str(e)}")
+            logger.exception(f"Skills extraction error: {e}")
             try:
                 self.page.go_back()
             except:
@@ -283,16 +283,16 @@ class LinkedInScraper:
                         education_list.append(education_entry)
                         
                 except Exception as item_error:
-                    logger.warning(f"Error extracting education item: {item_error}")
+                    logger.exception(f"Error extracting education item: {item_error}")
                     continue
             
             if education_list:
-                logger.info(f"✅ Extracted {len(education_list)} education entries")
+                logger.info(f"Extracted {len(education_list)} education entries")
             
             return education_list
             
         except Exception as e:
-            logger.error(f"Education extraction error: {str(e)}")
+            logger.exception(f"Education extraction error: {e}")
             return []
 
     def _extract_certificate(self):
@@ -334,17 +334,17 @@ class LinkedInScraper:
                             }
                             certificate_list.append(certificate_entry)
                     except Exception as item_error:
-                        logger.warning(f"Error extracting certificate item: {item_error}")
+                        logger.exception(f"Error extracting certificate item: {item_error}")
             
             except Exception as wait_error:
-                    logger.warning(f"Certificates content didn't load: {wait_error}")
+                    logger.exception(f"Certificates content didn't load: {wait_error}")
 
             logger.info("Extracted Certificates section successfully") if certificate_list else logger.warning("Empty certificates section found")
             self.page.go_back()
             return certificate_list
 
         except Exception as e:
-            logger.error(f"Certificate extraction error: {str(e)}")
+            logger.exception(f"Certificate extraction error: {e}")
             return []
     
     def close(self):
@@ -357,7 +357,7 @@ def scrape_linkedin_profile(profile_url, headless=True):
         profile_data = scraper.scrape_profile(profile_url)
         return profile_data
     except Exception as e:
-        logger.error(f"Scrape error: {str(e)}")
+        logger.exception(f"Scrape error: {e}")
         return None
     finally:
         scraper.close()

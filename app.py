@@ -146,7 +146,7 @@ def console_mode():
         print("\n\n Process interrupted by user")
     except Exception as e:
         print(f"\n An error occurred: {str(e)}")
-        logger.error(f"Error in console mode: {str(e)}")
+        logger.exception(f"Error in console mode: {e}")
         
     
 def create_flask_app():
@@ -247,7 +247,7 @@ def create_flask_app():
                 analysis_result=analysis_result)
             
         except Exception as e:
-            logger.error(f"Error in Flask route: {str(e)}")
+            logger.exception(f"Error in Flask route: {e}")
             flash(f'An error occurred: {str(e)}', 'error')
             return redirect(url_for('index'))
             

@@ -56,11 +56,11 @@ class LinkedInLogin:
             if linkedin_cookies:
                 with open(self.cookies_file, 'w') as f:
                     json.dump(linkedin_cookies, f, indent=2)
-                logger.info(f"✅ Saved {len(linkedin_cookies)} cookies")
+                logger.info(f"Saved {len(linkedin_cookies)} cookies")
                 return True
             return False
         except Exception as e:
-            logger.error(f"Cookie save error: {e}")
+            logger.exception(f"Cookie save error: {e}")
             return False
 
     def load_cookies(self):
@@ -81,7 +81,7 @@ class LinkedInLogin:
                 return True
             return False
         except Exception as e:
-            logger.error(f"Cookie load error: {e}")
+            logger.exception(f"Cookie load error: {e}")
             return False
     
     def random_delay(self, min_sec=1, max_sec=3):
@@ -112,7 +112,7 @@ class LinkedInLogin:
                         
                     logger.info(f"After navigation, current URL: {current_url}")
                 except Exception as nav_error:
-                    logger.warning(f"Failed to navigate to feed: {nav_error}")
+                    logger.exception(f"Failed to navigate to feed: {nav_error}")
                     return False
 
             # Quick URL checks - if on login page, definitely not logged in
@@ -153,7 +153,7 @@ class LinkedInLogin:
             return False
             
         except Exception as e:
-            logger.warning(f"Error checking login status: {e}")
+            logger.exception(f"Error checking login status: {e}")
             return False
 
     def login(self, email, password, profile_url=None):
@@ -215,11 +215,11 @@ class LinkedInLogin:
                     self.random_delay(2,4)
                 return True
             else:
-                logger.error(f"❌ Login failed for {email}. Not properly logged in.")
+                logger.error(f"Login failed for {email}. Not properly logged in.")
                 return False
 
         except Exception as e:
-            logger.error(f"Error during automated login: {str(e)}")
+            logger.exception(f"Error during automated login: {e}")
             return False
     
     def otp_handler(self, email):
@@ -289,7 +289,7 @@ class LinkedInLogin:
             
             for i, selector in enumerate(otp_selectors):
                 try:
-                    logger.info(f"🔍 Trying selector {i+1}/{len(otp_selectors)}: {selector}")
+                    logger.info(f"Trying selector {i+1}/{len(otp_selectors)}: {selector}")
                     otp_input = self.page.wait_for_selector(selector, timeout=2000)
                     if otp_input:
                         logger.info(f"Found OTP input field")
@@ -346,13 +346,13 @@ class LinkedInLogin:
                 return True
             
         except Exception as e:
-            logger.error(f"Error handling OTP verification: {e}")
+            logger.exception(f"Error handling OTP verification: {e}")
             return False
 
     def get_otp(self, email):
         secret = os.getenv(f"LINKEDIN_2FA_SECRET_{email.split('@')[0]}")
         if not secret:
-            logger.error(f"Secret not found for {email}")
+            logger.exception(f"Secret not found for: {email}")
             return None
         totp = pyotp.TOTP(secret)
         otp_code = totp.now()
@@ -398,7 +398,7 @@ class LinkedInLogin:
         
         # Check if all accounts reached max_usage
         if all(usage_dict.get(acc["email"], 0) >= max_usage for acc in accounts):
-            logger.info("🔄 All accounts reached max usage. Resetting all counters.")
+            logger.info("All accounts reached max usage. Resetting all counters.")
             usage_dict = {acc["email"]: 0 for acc in accounts}
             last_index = -1
             current_account = None
@@ -414,7 +414,7 @@ class LinkedInLogin:
             usage = usage_dict.get(email, 0)
 
             if usage >= max_usage:
-                logger.info(f"⏭️  Account {email} reached max usage ({usage}/{max_usage}). Trying next account.")
+                logger.info(f"Account {email} reached max usage ({usage}/{max_usage}). Trying next account.")
                 continue
             
             # Found available account
@@ -479,7 +479,7 @@ class LinkedInLogin:
             logger.info(f"Incremented usage for {email}: {clean_state['usage'][email]}")
             
         except Exception as e:
-            logger.error(f"Failed to increment account usage: {e}")
+            logger.exception(f"Failed to increment account usage: {e}")
         
     def clear_browser_data(self):
         try:
@@ -489,14 +489,14 @@ class LinkedInLogin:
                     self.browser.close()
                     logger.info("Browser closed.")
                 except Exception as e:
-                    logger.warning(f"Error closing browser: {e}")
+                    logger.exception(f"Error closing browser: {e}")
             
             if hasattr(self, 'playwright') and self.playwright:
                 try:
                     self.playwright.stop()
                     logger.info("Playwright stopped.")
                 except Exception as e:
-                    logger.warning(f"Error stopping playwright: {e}")
+                    logger.exception(f"Error stopping playwright: {e}")
             
             time.sleep(2)
             
@@ -505,7 +505,7 @@ class LinkedInLogin:
                     shutil.rmtree(self.user_data_dir, ignore_errors=True)
                     logger.info("Deleted user data directory.")
                 except Exception as e:
-                    logger.warning(f"Error deleting user data directory: {e}")
+                    logger.exception(f"Error deleting user data directory: {e}")
             
             self.user_data_dir.mkdir(exist_ok=True)
             
@@ -515,7 +515,7 @@ class LinkedInLogin:
             return True
         
         except Exception as e: 
-            logger.error(f"Error clearing browser data: {e}")
+            logger.exception(f"Error clearing browser data: {e}")
             return False
 
     def ensure_logged_in(self, profile_url, max_login_retries=3):
@@ -552,7 +552,7 @@ class LinkedInLogin:
                     else:
                         logger.info(f"Current account {current_account} reached max usage ({usage}/{MAX_SCRAPE_PER_ACCOUNT})")
         except Exception as e:
-            logger.warning(f"Could not load current account state: {e}")
+            logger.exception(f"Could not load current account state: {e}")
         
         # Try logging in with account rotation on failure
         login_successful = False
@@ -565,9 +565,9 @@ class LinkedInLogin:
             if self.login(current_account_email, current_account_password, profile_url):
                 login_successful = True
                 self.increment_account_usage(current_account_email)
-                logger.info(f"✅ Logged in successfully with {current_account_email}")
+                logger.info(f"Logged in successfully with {current_account_email}")
             else:
-                logger.warning(f"❌ Login failed with current account: {current_account_email}")
+                logger.exception(f"Login failed with current account: {current_account_email}")
                 attempts_made += 1
         
         # If current account failed or doesn't exist, try rotating accounts
@@ -602,10 +602,10 @@ class LinkedInLogin:
                         logger.info(f"Logged in successfully with {email}")
                         break
                     else:
-                        logger.warning(f"Login failed with {email}")
+                        logger.exception(f"Login failed with: {email}")
                         
                 except Exception as e:
-                    logger.error(f"Error in rotation attempt {attempt + 1}: {e}")
+                    logger.exception(f"Error in rotation attempt {attempt + 1}: {e}")
         
         if not login_successful:
             logger.error(f"Failed to login after trying {attempts_made + remaining_retries} accounts")
@@ -625,4 +625,4 @@ class LinkedInLogin:
             logger.info("Browser closed successfully.") 
 
         except Exception as e: 
-            logger.error(f"Error closing browser: {e}")
+            logger.exception(f"Error closing browser: {e}")

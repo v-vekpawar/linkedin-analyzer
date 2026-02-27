@@ -49,7 +49,7 @@ class ProfileAnalyzer:
                 else:
                     text = str(response)
             except (AttributeError, IndexError) as e:
-                logger.warning(f"Error extracting text: {e}")
+                logger.exception(f"Error extracting text: {e}")
                 text = str(response)
             text = self._clean_output(text)
 
@@ -66,7 +66,7 @@ class ProfileAnalyzer:
             return result
         
         except Exception as e:
-            logger.error(f"Error generating {mode}: {str(e)}")
+            logger.exception(f"Error generating {mode}: {e}")
             return {
                 "result": f"Error generating analysis: {str(e)}",
                 "mode": mode,
